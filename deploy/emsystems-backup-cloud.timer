@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily EMSystems encrypted off-site backup schedule
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+RandomizedDelaySec=20m
+Persistent=true
+Unit=emsystems-backup-cloud.service
+
+[Install]
+WantedBy=timers.target

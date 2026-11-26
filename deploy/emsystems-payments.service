@@ -1,0 +1,40 @@
+[Unit]
+Description=EMSystems Payment Gateway Adapter (Sandbox/Configured Providers)
+Wants=network-online.target
+After=network-online.target emsystems-api.service
+
+[Service]
+Type=simple
+User=emsystems
+Group=emsystems
+WorkingDirectory=/opt/emsystems/current
+EnvironmentFile=/etc/emsystems/payment.env
+Environment=NODE_ENV=production
+Environment=PAYMENT_PORT=5175
+Environment=PAYMENT_STATE_DIR=/var/lib/emsystems/payments
+Environment=APP_API_INTERNAL_URL=http://127.0.0.1:5176
+StateDirectory=emsystems
+StateDirectoryMode=0700
+UMask=0077
+ExecStart=/usr/bin/node /opt/emsystems/current/payment-sandbox-server.mjs
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+KillSignal=SIGINT
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=emsystems-payments
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/var/lib/emsystems
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

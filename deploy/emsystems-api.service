@@ -1,0 +1,40 @@
+[Unit]
+Description=EMSystems Business API
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=emsystems
+Group=emsystems
+WorkingDirectory=/opt/emsystems/current
+EnvironmentFile=/etc/emsystems/app-api.env
+Environment=NODE_ENV=production
+Environment=APP_API_PORT=5176
+Environment=EMSYSTEMS_DB_PATH=/var/lib/emsystems/emsystems.sqlite
+Environment=PAYMENT_API_INTERNAL_URL=http://127.0.0.1:5175
+StateDirectory=emsystems
+StateDirectoryMode=0700
+UMask=0077
+ExecStart=/usr/bin/node /opt/emsystems/current/server/app-api-server.mjs
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+KillSignal=SIGINT
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=emsystems-api
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/var/lib/emsystems
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

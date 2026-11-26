@@ -1,0 +1,6 @@
+# Optional global journald cap for this VPS; install as
+# /etc/systemd/journald.conf.d/60-emsystems.conf and reload systemd-journald.
+[Journal]
+SystemMaxUse=500M
+SystemKeepFree=1G
+MaxRetentionSec=30day

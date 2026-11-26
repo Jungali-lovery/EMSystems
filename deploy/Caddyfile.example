@@ -1,0 +1,55 @@
+# Copy to Caddy's site configuration and replace the example hostname.
+# DNS A/AAAA must point to this server and inbound ports 80/443 must be reachable.
+{$EMSYS_DOMAIN} {
+  encode zstd gzip
+
+  # Never persist sensitive query parameter values in access logs.
+  log {
+    output file /var/log/caddy/emsystems-access.log {
+      roll_size 25MiB
+      roll_keep 10
+      roll_keep_for 30d
+    }
+    format filter {
+      wrap json
+      fields {
+        request>uri query {
+          replace token REDACTED
+          replace paymentToken REDACTED
+          replace payment_token REDACTED
+          replace access_token REDACTED
+          replace statusToken REDACTED
+        }
+      }
+    }
+  }
+
+  # Requires Caddy 2.10+. Keep the normal limit aligned with app-api-server.mjs.
+  # Backup restore has its own bounded allowance (38 MiB in the application server).
+  @backup_restore path /api/app/system/backup/restore
+  request_body @backup_restore {
+    max_size 40MB
+  }
+  request_body {
+    max_size 1MB
+  }
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+    Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://cdn.dummyjson.com https://online.gov.vn data:; connect-src 'self' https://dummyjson.com; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+  }
+
+  @app_api path /api/app/*
+  reverse_proxy @app_api 127.0.0.1:5176
+
+  @payment_api path /api/payments/*
+  reverse_proxy @payment_api 127.0.0.1:5175
+
+  root * /var/www/emsystems/dist
+  try_files {path} /index.html
+  file_server
+}
